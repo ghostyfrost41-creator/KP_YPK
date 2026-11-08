@@ -37,61 +37,28 @@ function validate_csrf(): void
     }
 }
 
-function db_query(mysqli $conn, string $sql, array $params = [])
+function db_query(PDO $conn, string $sql, array $params = []): PDOStatement
 {
-    if (!$params) {
-        $result = mysqli_query($conn, $sql);
-        if (!$result) {
-            die('Query error: ' . mysqli_error($conn));
-        }
-        return $result;
+    try {
+        $stmt = $conn->prepare($sql);
+        $stmt->execute(array_values($params));
+        return $stmt;
+    } catch (PDOException $exception) {
+        error_log('Database query failed: ' . $exception->getMessage());
+        http_response_code(500);
+        die('Terjadi kesalahan saat mengakses database.');
     }
-
-    $stmt = mysqli_prepare($conn, $sql);
-    if (!$stmt) {
-        die('Prepare query error: ' . mysqli_error($conn));
-    }
-
-    $types = '';
-    foreach ($params as $param) {
-        if (is_int($param)) {
-            $types .= 'i';
-        } elseif (is_float($param)) {
-            $types .= 'd';
-        } else {
-            $types .= 's';
-        }
-    }
-
-    mysqli_stmt_bind_param($stmt, $types, ...$params);
-    if (!mysqli_stmt_execute($stmt)) {
-        die('Execute query error: ' . mysqli_stmt_error($stmt));
-    }
-
-    $result = mysqli_stmt_get_result($stmt);
-    return $result !== false ? $result : $stmt;
 }
 
-function fetch_all_assoc(mysqli $conn, string $sql, array $params = []): array
+function fetch_all_assoc(PDO $conn, string $sql, array $params = []): array
 {
-    $result = db_query($conn, $sql, $params);
-    $rows = [];
-    if ($result instanceof mysqli_result) {
-        while ($row = mysqli_fetch_assoc($result)) {
-            $rows[] = $row;
-        }
-    }
-    return $rows;
+    return db_query($conn, $sql, $params)->fetchAll();
 }
 
-function fetch_one_assoc(mysqli $conn, string $sql, array $params = []): ?array
+function fetch_one_assoc(PDO $conn, string $sql, array $params = []): ?array
 {
-    $result = db_query($conn, $sql, $params);
-    if ($result instanceof mysqli_result) {
-        $row = mysqli_fetch_assoc($result);
-        return $row ?: null;
-    }
-    return null;
+    $row = db_query($conn, $sql, $params)->fetch();
+    return $row === false ? null : $row;
 }
 
 function format_tanggal(?string $tanggal): string

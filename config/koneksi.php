@@ -1,14 +1,37 @@
 <?php
-$host = 'localhost';
-$user = 'root';
-$pass = '';
-$db   = 'db_osis_kp';
+$host = getenv('SUPABASE_DB_HOST') ?: '';
+$port = getenv('SUPABASE_DB_PORT') ?: '5432';
+$db = getenv('SUPABASE_DB_NAME') ?: 'postgres';
+$user = getenv('SUPABASE_DB_USER') ?: '';
+$pass = getenv('SUPABASE_DB_PASSWORD');
+$sslmode = getenv('SUPABASE_DB_SSLMODE') ?: 'require';
 
-mysqli_report(MYSQLI_REPORT_OFF);
-$conn = mysqli_connect($host, $user, $pass, $db);
-
-if (!$conn) {
-    die('Koneksi database gagal: ' . mysqli_connect_error());
+if ($host === '' || $user === '' || $pass === false || $pass === '') {
+    http_response_code(500);
+    die('Konfigurasi Supabase belum lengkap. Atur SUPABASE_DB_HOST, SUPABASE_DB_USER, dan SUPABASE_DB_PASSWORD.');
 }
 
-mysqli_set_charset($conn, 'utf8mb4');
+if (!ctype_digit($port) || !in_array($sslmode, ['require', 'verify-ca', 'verify-full'], true)) {
+    http_response_code(500);
+    die('Konfigurasi port atau SSL Supabase tidak valid.');
+}
+
+$dsn = sprintf(
+    'pgsql:host=%s;port=%s;dbname=%s;sslmode=%s',
+    $host,
+    $port,
+    $db,
+    $sslmode
+);
+
+try {
+    $conn = new PDO($dsn, $user, $pass, [
+        PDO::ATTR_ERRMODE => PDO::ERRMODE_EXCEPTION,
+        PDO::ATTR_DEFAULT_FETCH_MODE => PDO::FETCH_ASSOC,
+        PDO::ATTR_EMULATE_PREPARES => false,
+    ]);
+} catch (PDOException $exception) {
+    error_log('Supabase connection failed: ' . $exception->getMessage());
+    http_response_code(500);
+    die('Koneksi ke Supabase gagal. Periksa konfigurasi database dan ekstensi PDO PostgreSQL.');
+}
