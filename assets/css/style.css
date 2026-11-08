@@ -1,0 +1,68 @@
+:root {
+    --navy: #0b1f4d;
+    --blue: #2563eb;
+    --soft-blue: #eff6ff;
+}
+
+body {
+    font-family: Arial, Helvetica, sans-serif;
+    color: #172033;
+}
+
+.bg-navy {
+    background: var(--navy) !important;
+}
+
+.text-navy {
+    color: var(--navy) !important;
+}
+
+.btn-blue {
+    background: var(--blue);
+    color: #fff;
+    border: none;
+}
+
+.btn-blue:hover {
+    background: #1d4ed8;
+    color: #fff;
+}
+
+.hero {
+    background: linear-gradient(135deg, rgba(11,31,77,.95), rgba(37,99,235,.92)), url('../images/school-bg.svg');
+    background-size: cover;
+    color: #fff;
+    padding: 88px 0;
+}
+
+.section-title {
+    font-weight: 800;
+    color: var(--navy);
+}
+
+.card-clean {
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 10px 30px rgba(15, 23, 42, .08);
+}
+
+.card-img-top-fixed {
+    height: 210px;
+    object-fit: cover;
+}
+
+.stat-card {
+    border: 0;
+    border-radius: 18px;
+    box-shadow: 0 10px 25px rgba(15, 23, 42, .08);
+}
+
+.login-page {
+    min-height: 100vh;
+    background: linear-gradient(135deg, #0b1f4d, #2563eb);
+}
+
+.table td,
+.table th {
+    vertical-align: middle;
+}
